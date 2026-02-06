@@ -90,15 +90,36 @@ st.markdown(
 with st.sidebar:
     st.header("Study design")
 
-    # Species / model
+    # Build unique species list and map to available models
     species_keys = get_species_model_keys()
-    selected_key = st.selectbox(
-        "Species & nociceptive model",
-        species_keys,
+    _species_to_keys = {}
+    for k in species_keys:
+        sp = SPECIES_MODELS[k]["species"]
+        _species_to_keys.setdefault(sp, []).append(k)
+    _unique_species = list(_species_to_keys.keys())
+
+    selected_species = st.selectbox(
+        "Species",
+        _unique_species,
         index=0,
-        help="Select a species and testing model. Variance parameters "
-             "will be pre-filled from published data.",
+        help="Select a bird species. Variance parameters will be "
+             "pre-filled from published data.",
     )
+
+    # Show model selector only if multiple models available
+    available_keys = _species_to_keys[selected_species]
+    if len(available_keys) > 1:
+        model_labels = [SPECIES_MODELS[k]["model"] for k in available_keys]
+        selected_model = st.radio(
+            "Nociceptive model",
+            model_labels,
+            index=0,
+        )
+        selected_key = available_keys[model_labels.index(selected_model)]
+    else:
+        selected_key = available_keys[0]
+        st.caption(f"Model: {SPECIES_MODELS[selected_key]['model']}")
+
     params = get_species_model_params(selected_key)
 
     # Design type
