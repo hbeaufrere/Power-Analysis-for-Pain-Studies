@@ -72,16 +72,48 @@ st.markdown("""
         padding: 1rem;
         margin: 0.5rem 0;
     }
+    /* Banner styling */
+    .banner-container {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .banner-container img {
+        width: 100%;
+        display: block;
+    }
+    .app-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin: 0.3rem 0 0.2rem 0;
+        line-height: 1.2;
+    }
+    .app-subtitle {
+        font-size: 1.05rem;
+        color: #555;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Header ─────────────────────────────────────────────────────────────────
-st.title("Power Analysis for Avian Analgesiometric Studies")
+# ── Banner & Header ───────────────────────────────────────────────────────
+st.image("banner.png", use_container_width=True)
 st.markdown(
+    '<p class="app-title">Power Analysis for Avian Analgesiometric Studies</p>',
+    unsafe_allow_html=True,
+)
+st.markdown(
+    '<p class="app-subtitle">'
     "Calculate sample sizes for repeated-measures pain studies in birds "
-    "analysed with **linear mixed models**. Variance parameters are "
-    "pre-populated from the published avian thermal/mechanical "
+    "analysed with <b>linear mixed models</b>. Variance parameters are "
+    "pre-populated from the published avian thermal / mechanical "
     "antinociception literature."
+    "</p>",
+    unsafe_allow_html=True,
 )
 
 # ═══════════════════════════════════════════════════════════════════════════
