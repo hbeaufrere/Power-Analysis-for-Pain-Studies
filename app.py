@@ -72,36 +72,24 @@ st.markdown("""
         padding: 1rem;
         margin: 0.5rem 0;
     }
-    /* Banner styling */
-    .banner-container {
-        width: 100%;
-        overflow: hidden;
-        border-radius: 12px;
-        margin-bottom: 0.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .banner-container img {
-        width: 100%;
-        display: block;
-    }
+    /* Title styling */
     .app-title {
-        font-size: 2.2rem;
-        font-weight: 700;
+        font-size: 3.2rem;
+        font-weight: 800;
         color: #1a1a2e;
-        margin: 0.3rem 0 0.2rem 0;
-        line-height: 1.2;
+        margin: 0 0 0.3rem 0;
+        line-height: 1.15;
     }
     .app-subtitle {
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         color: #555;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
         line-height: 1.5;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Banner & Header ───────────────────────────────────────────────────────
-st.image("banner.png", use_container_width=True)
+# ── Header ────────────────────────────────────────────────────────────────
 st.markdown(
     '<p class="app-title">Power Analysis for Avian Analgesiometric Studies</p>',
     unsafe_allow_html=True,
@@ -120,6 +108,7 @@ st.markdown(
 # SIDEBAR – study design configuration
 # ═══════════════════════════════════════════════════════════════════════════
 with st.sidebar:
+    st.image("banner.png", use_container_width=True)
     st.header("Study design")
 
     # Build unique species list and map to available models
