@@ -370,6 +370,12 @@ def simulate_power(
 ) -> dict:
     """Simulation-based power using statsmodels MixedLM.
 
+    The model mirrors the analytical formula: random-intercept LMM with
+    fixed effects for treatment and time (no interaction).  The treatment
+    coefficient therefore represents the **average** treatment effect
+    across time-points, which is what the analytical "overall" test
+    calculates.
+
     Returns dict with ``power``, ``ci_lower``, ``ci_upper``, ``n_converged``.
     """
     try:
@@ -419,16 +425,19 @@ def simulate_power(
 
         df = pd.DataFrame(rows)
         try:
+            # No interaction term: the treatment coefficient estimates the
+            # average treatment effect across all time-points, matching the
+            # analytical "overall" power formula.
             model = smf.mixedlm(
-                "y ~ C(treatment) + C(time) + C(treatment):C(time)",
+                "y ~ C(treatment) + C(time)",
                 df,
                 groups=df["subject"],
             )
-            result = model.fit(reml=True, method="powell", maxiter=200)
+            result = model.fit(reml=True)
             converged += 1
             # test of treatment main effect
             for key in result.pvalues.index:
-                if "treatment" in key.lower() and "time" not in key.lower():
+                if "treatment" in key.lower():
                     if result.pvalues[key] < alpha:
                         significant += 1
                     break

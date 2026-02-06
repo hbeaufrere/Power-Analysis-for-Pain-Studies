@@ -72,21 +72,21 @@ st.markdown("""
         padding: 1rem;
         margin: 0.5rem 0;
     }
-    /* Title styling */
-    .app-title {
-        font-size: 6rem;
-        font-weight: 800;
-        color: #1a1a2e;
-        margin: 0 0 0.4rem 0;
-        line-height: 1.1;
-        text-align: center;
+    /* Title styling — !important overrides Streamlit defaults */
+    .stMarkdown .app-title {
+        font-size: 4rem !important;
+        font-weight: 800 !important;
+        color: #1a1a2e !important;
+        margin: 0 0 0.4rem 0 !important;
+        line-height: 1.1 !important;
+        text-align: center !important;
     }
-    .app-subtitle {
-        font-size: 1.15rem;
-        color: #555;
-        margin-bottom: 1.5rem;
-        line-height: 1.5;
-        text-align: center;
+    .stMarkdown .app-subtitle {
+        font-size: 1.15rem !important;
+        color: #555 !important;
+        margin-bottom: 1.5rem !important;
+        line-height: 1.5 !important;
+        text-align: center !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -216,11 +216,12 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════════════════════
 # MAIN AREA – tabs
 # ═══════════════════════════════════════════════════════════════════════════
-tab_power, tab_ref, tab_sensitivity, tab_sim, tab_methods = st.tabs([
+tab_power, tab_ref, tab_sensitivity, tab_sim, tab_grant, tab_methods = st.tabs([
     "Power Analysis",
     "Reference Data",
     "Sensitivity Analysis",
     "Simulation Validation",
+    "For Grant Writing",
     "Methods & Assumptions",
 ])
 
@@ -841,7 +842,90 @@ with tab_sim:
             )
 
 # ───────────────────────────────────────────────────────────────────────────
-# TAB 5 — Methods & assumptions
+# TAB 5 — For grant writing
+# ───────────────────────────────────────────────────────────────────────────
+with tab_grant:
+    st.subheader("Sample size justification for grant applications")
+    st.markdown(
+        "The paragraph below is automatically generated from the parameters "
+        "you selected in the sidebar and the Power Analysis tab. You can "
+        "copy and paste it directly into a grant application or IACUC "
+        "protocol. Adjust the species, drug, and design details to match "
+        "your specific study."
+    )
+
+    # Build the grant paragraph dynamically
+    unit = params["unit"]
+    species_latin = params["latin"]
+    species_common = params["species"]
+    model_name = params["model"].lower()
+
+    if design == "Crossover":
+        design_desc = (
+            f"a crossover design in which each bird receives both the "
+            f"test analgesic and a control treatment (saline) in random "
+            f"order, separated by an adequate washout period"
+        )
+        n_desc = f"{result['n']} birds"
+        total_desc = ""
+    else:
+        design_desc = (
+            f"a parallel-group design with separate treatment and "
+            f"control (saline) groups"
+        )
+        n_desc = f"{result['n']} birds per group"
+        total_desc = f" ({2 * result['n']} total)"
+
+    test_desc = {
+        "overall": "overall treatment effect (averaged across all post-treatment time-points)",
+        "peak": "treatment effect at the time of peak drug activity",
+        "interaction": "treatment-by-time interaction",
+    }[test_type]
+
+    tp_str = ", ".join(str(t) for t in timepoints)
+
+    grant_text = (
+        f"Antinociception will be evaluated in {species_common} "
+        f"(*{species_latin}*) using a {model_name} assay with "
+        f"{design_desc}. Nociceptive thresholds will be measured at "
+        f"{len(timepoints)} time-points ({tp_str} h post-administration). "
+        f"Data will be analysed using a linear mixed model with treatment "
+        f"and time as fixed effects and a random intercept for bird. "
+        f"Sample size was determined by power analysis based on variance "
+        f"components derived from previously published avian "
+        f"antinociception studies in this species (within-subject SD = "
+        f"{within_sd:.1f} {unit}"
+    )
+    if design == "Parallel":
+        grant_text += f", between-subject SD = {between_sd:.1f} {unit}"
+    grant_text += (
+        f"). Assuming an expected peak treatment effect of "
+        f"{peak_effect:.1f} {unit} (duration {duration:.1f} h), "
+        f"a minimum of **{n_desc}**{total_desc} is required to detect the "
+        f"{test_desc} with {target_power:.0%} power at a two-sided "
+        f"significance level of {alpha} (achieved power: "
+        f"{result['power']:.1%}). "
+        f"Power analysis was conducted using a purpose-built web "
+        f"application (Python / Streamlit) employing closed-form power "
+        f"calculations based on the non-central *t* and *F* distributions "
+        f"for balanced repeated-measures designs, with optional "
+        f"simulation-based validation via Monte Carlo fitting of linear "
+        f"mixed models. The application and its source code are freely "
+        f"available at "
+        f"https://github.com/hbeaufrere/Power-Analysis-for-Pain-Studies."
+    )
+
+    st.markdown("---")
+    st.markdown(grant_text)
+    st.markdown("---")
+
+    st.caption(
+        "Tip: Click inside the paragraph above and use Ctrl+A / Cmd+A "
+        "to select all text, then copy."
+    )
+
+# ───────────────────────────────────────────────────────────────────────────
+# TAB 6 — Methods & assumptions
 # ───────────────────────────────────────────────────────────────────────────
 with tab_methods:
     st.subheader("Statistical methods")
