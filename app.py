@@ -184,11 +184,23 @@ tab_power, tab_ref, tab_sensitivity, tab_sim, tab_methods = st.tabs([
 # TAB 1 — Power analysis
 # ───────────────────────────────────────────────────────────────────────────
 with tab_power:
+    st.markdown(
+        "This page calculates **how many birds you need** in your study. "
+        "It uses information from previously published studies (how much "
+        "natural variability exists between birds and between measurements) "
+        "combined with the drug effect you expect to see. A larger expected "
+        "drug effect or less variability means fewer birds are needed; a "
+        "smaller effect or more variability means more birds are needed."
+    )
+
     st.subheader("Variance components")
     st.markdown(
         f"Pre-filled from **{params['species']}** – "
         f"*{params['model']}* literature. Adjust as needed."
     )
+
+    # Use dynamic keys so widgets reset when species changes
+    _sk = selected_key  # short alias for widget keys
 
     col_v1, col_v2 = st.columns(2)
     with col_v1:
@@ -198,6 +210,7 @@ with tab_power:
             value=params["within_subject_sd"],
             step=0.1,
             format="%.2f",
+            key=f"within_sd_{_sk}",
             help="Residual standard deviation from the LMM (σ_ε). "
                  "Represents measurement-to-measurement variability "
                  "within the same bird.",
@@ -209,6 +222,7 @@ with tab_power:
             value=params["between_subject_sd"],
             step=0.1,
             format="%.2f",
+            key=f"between_sd_{_sk}",
             help="Between-bird SD (σ_b). In crossover designs this "
                  "cancels out; in parallel designs it inflates the "
                  "required sample size.",
@@ -242,6 +256,7 @@ with tab_power:
             ) if ref_studies else 3.0, 1)),
             step=0.5,
             format="%.1f",
+            key=f"peak_effect_{_sk}",
             help="Maximum expected difference between treatment and "
                  "control at the time of peak drug activity.",
         )
@@ -254,6 +269,7 @@ with tab_power:
             ) if ref_studies else 1.0, 1)),
             step=0.5,
             format="%.1f",
+            key=f"t_peak_{_sk}",
         )
     with col_e3:
         duration = st.number_input(
@@ -264,6 +280,7 @@ with tab_power:
             ) if ref_studies else 4.0, 1)),
             step=0.5,
             format="%.1f",
+            key=f"duration_{_sk}",
         )
 
     # Generate effect profile
@@ -477,9 +494,10 @@ with tab_ref:
         vc_rows.append({
             "Species": p["species"],
             "Model": p["model"],
-            f"Baseline mean ({p['unit']})": p["baseline_mean"],
-            f"Between-subject SD ({p['unit']})": p["between_subject_sd"],
-            f"Within-subject SD ({p['unit']})": p["within_subject_sd"],
+            "Unit": p["unit"],
+            "Baseline mean": p["baseline_mean"],
+            "Between-subject SD": p["between_subject_sd"],
+            "Within-subject SD": p["within_subject_sd"],
             "ICC": round(p["icc"], 2),
             "Typical n": p["typical_n"],
             "Time points": len(p["typical_timepoints"]),
@@ -524,23 +542,34 @@ with tab_ref:
 with tab_sensitivity:
     st.subheader("Sensitivity analysis")
     st.markdown(
-        "Explore how power changes across a range of effect sizes and sample "
-        "sizes. Cells show power (0–1)."
+        "In practice, you may not know exactly how strong your new drug's "
+        "effect will be. This page lets you explore a **range of scenarios** "
+        "simultaneously: what if the drug effect is smaller or larger than "
+        "expected? How does the required number of birds change? The table "
+        "and heatmap below show the probability of detecting a drug effect "
+        "(power) for every combination of effect size and sample size. "
+        "Green cells mean you have enough birds; red cells mean you do not."
     )
 
     col_s1, col_s2 = st.columns(2)
     with col_s1:
         es_min = st.number_input(
-            "Min effect size", value=round(peak_effect * 0.3, 1), step=0.5, format="%.1f",
+            "Min effect size", value=round(peak_effect * 0.3, 1), step=0.5,
+            format="%.1f", key=f"es_min_{_sk}",
         )
         es_max = st.number_input(
-            "Max effect size", value=round(peak_effect * 2.0, 1), step=0.5, format="%.1f",
+            "Max effect size", value=round(peak_effect * 2.0, 1), step=0.5,
+            format="%.1f", key=f"es_max_{_sk}",
         )
-        n_es_steps = st.slider("Number of effect-size steps", 3, 15, 8)
+        n_es_steps = st.slider("Number of effect-size steps", 3, 15, 8,
+                               key=f"n_es_{_sk}")
     with col_s2:
-        ns_min = st.number_input("Min n", value=4, step=1, min_value=3)
-        ns_max = st.number_input("Max n", value=40, step=5, min_value=4)
-        n_ns_steps = st.slider("Number of n steps", 3, 15, 8)
+        ns_min = st.number_input("Min n", value=4, step=1, min_value=3,
+                                 key=f"ns_min_{_sk}")
+        ns_max = st.number_input("Max n", value=40, step=5, min_value=4,
+                                 key=f"ns_max_{_sk}")
+        n_ns_steps = st.slider("Number of n steps", 3, 15, 8,
+                               key=f"n_ns_{_sk}")
 
     effect_sizes = list(np.linspace(es_min, es_max, n_es_steps).round(1))
     sample_sizes = sorted(set(
@@ -674,10 +703,14 @@ with tab_sensitivity:
 with tab_sim:
     st.subheader("Simulation-based power validation")
     st.markdown(
-        "Validate the analytical result by simulating complete datasets, "
-        "fitting a linear mixed model to each, and recording whether the "
-        "treatment effect is statistically significant. This is slower but "
-        "provides a model-free ground truth."
+        "The Power Analysis tab uses a mathematical formula to estimate how "
+        "many birds you need. This page **double-checks that formula** by "
+        "actually simulating hundreds of fake experiments: it generates "
+        "realistic data (with the variability and drug effect you specified), "
+        "runs the same statistical analysis you would use on real data (a "
+        "linear mixed model), and counts how often the drug effect is "
+        "detected. If the formula and the simulation agree, you can be "
+        "confident in the sample-size recommendation."
     )
 
     col_sim1, col_sim2 = st.columns(2)
@@ -687,18 +720,21 @@ with tab_sim:
             min_value=3, max_value=200,
             value=result["n"],
             step=1,
+            key=f"sim_n_{_sk}",
         )
     with col_sim2:
         n_sims = st.selectbox(
             "Number of simulations",
             [100, 200, 500, 1000],
             index=1,
+            key=f"n_sims_{_sk}",
             help="More simulations = more precise estimate but slower.",
         )
 
-    sim_seed = st.number_input("Random seed", value=42, step=1)
+    sim_seed = st.number_input("Random seed", value=42, step=1,
+                               key=f"seed_{_sk}")
 
-    if st.button("Run simulation", type="primary"):
+    if st.button("Run simulation", type="primary", key=f"run_sim_{_sk}"):
         with st.spinner(f"Running {n_sims} simulations..."):
             sim_result = simulate_power(
                 n_subjects=sim_n,
@@ -765,6 +801,18 @@ with tab_sim:
 # ───────────────────────────────────────────────────────────────────────────
 with tab_methods:
     st.subheader("Statistical methods")
+    st.markdown(
+        "This page describes the math behind the power calculations for "
+        "those who want to understand or report the methodology. In short: "
+        "the tool assumes your data will be analysed with a **linear mixed "
+        "model** (LMM) — the standard approach for repeated-measures studies "
+        "where each bird is measured multiple times. The power calculation "
+        "figures out how likely you are to find a statistically significant "
+        "drug effect given the natural variability in your measurements, the "
+        "expected strength of the drug, and the number of birds. The "
+        "formulas below are what reviewers and statisticians would expect to "
+        "see in a grant application or methods section."
+    )
 
     st.markdown(r"""
 ### Linear mixed model
