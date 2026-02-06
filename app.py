@@ -74,17 +74,19 @@ st.markdown("""
     }
     /* Title styling */
     .app-title {
-        font-size: 3.2rem;
+        font-size: 4.5rem;
         font-weight: 800;
         color: #1a1a2e;
-        margin: 0 0 0.3rem 0;
-        line-height: 1.15;
+        margin: 0 0 0.4rem 0;
+        line-height: 1.1;
+        text-align: center;
     }
     .app-subtitle {
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         color: #555;
-        margin-bottom: 1.2rem;
+        margin-bottom: 1.5rem;
         line-height: 1.5;
+        text-align: center;
     }
 </style>
 """, unsafe_allow_html=True)
