@@ -74,7 +74,7 @@ st.markdown("""
     }
     /* Title styling */
     .app-title {
-        font-size: 4.5rem;
+        font-size: 6rem;
         font-weight: 800;
         color: #1a1a2e;
         margin: 0 0 0.4rem 0;
