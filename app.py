@@ -72,16 +72,21 @@ st.markdown("""
         padding: 1rem;
         margin: 0.5rem 0;
     }
-    /* Title styling — !important overrides Streamlit defaults */
-    .stMarkdown .app-title {
-        font-size: 4rem !important;
+    /* Title styling — target every possible Streamlit wrapper */
+    .app-title,
+    .stMarkdown .app-title,
+    div[data-testid="stMarkdownContainer"] .app-title,
+    .element-container .app-title {
+        font-size: 3rem !important;
         font-weight: 800 !important;
         color: #1a1a2e !important;
         margin: 0 0 0.4rem 0 !important;
-        line-height: 1.1 !important;
+        line-height: 1.15 !important;
         text-align: center !important;
     }
-    .stMarkdown .app-subtitle {
+    .app-subtitle,
+    .stMarkdown .app-subtitle,
+    div[data-testid="stMarkdownContainer"] .app-subtitle {
         font-size: 1.15rem !important;
         color: #555 !important;
         margin-bottom: 1.5rem !important;
@@ -93,11 +98,14 @@ st.markdown("""
 
 # ── Header ────────────────────────────────────────────────────────────────
 st.markdown(
-    '<p class="app-title">Power Analysis for Avian Analgesiometric Studies</p>',
+    '<h1 class="app-title" style="font-size:3rem;font-weight:800;color:#1a1a2e;'
+    'text-align:center;line-height:1.15;margin:0 0 0.4rem 0;">'
+    'Power Analysis for Avian Analgesiometric Studies</h1>',
     unsafe_allow_html=True,
 )
 st.markdown(
-    '<p class="app-subtitle">'
+    '<p class="app-subtitle" style="font-size:1.15rem;color:#555;'
+    'text-align:center;line-height:1.5;margin-bottom:1.5rem;">'
     "Calculate sample sizes for repeated-measures pain studies in birds "
     "analysed with <b>linear mixed models</b>. Variance parameters are "
     "pre-populated from the published avian thermal / mechanical "
